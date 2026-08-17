@@ -1,134 +1,100 @@
-/**************************************************************************/
-/*  GodotApp.java                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
-package com.godot.game;
-
-import org.godotengine.godot.Godot;
-import org.godotengine.godot.GodotActivity;
-
-import android.os.Bundle;
-import android.util.Log;
-
-import androidx.activity.EdgeToEdge;
-import androidx.core.splashscreen.SplashScreen;
-
-/**
- * Template activity for Godot Android builds.
- * Feel free to extend and modify this class for your custom logic.
- */
-public class GodotApp extends GodotActivity {
-	static {
-		// .NET libraries.
-		if (BuildConfig.FLAVOR.equals("mono")) {
-			try {
-				Log.v("GODOT", "Loading System.Security.Cryptography.Native.Android library");
-				System.loadLibrary("System.Security.Cryptography.Native.Android");
-			} catch (UnsatisfiedLinkError e) {
-				Log.e("GODOT", "Unable to load System.Security.Cryptography.Native.Android library");
-			}
-		}
-	}
-
-	private final Runnable updateWindowAppearance = () -> {
-		Godot godot = getGodot();
-		if (godot != null) {
-			godot.enableImmersiveMode(godot.isInImmersiveMode(), true);
-			godot.enableEdgeToEdge(godot.isInEdgeToEdgeMode(), true);
-			godot.setSystemBarsAppearance();
-		}
-	};
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-		EdgeToEdge.enable(this);
-		super.onCreate(savedInstanceState);
-
-		Godot godot = getGodot();
-		if (godot != null && godot.getDisableGodotSplash()) {
-			splashScreen.setKeepOnScreenCondition(() -> godot.getRunStatus() != Godot.RunStatus.STARTED);
-		}
-	}
-
-	@Override
-	public void onNewIntent(android.content.Intent intent) {
-		super.onNewIntent(intent);
-		setIntent(intent);
-	}
-
-	@Override
-	public void onResume() {
-		super.onResume();
-		updateWindowAppearance.run();
-		
-		android.content.Intent intent = getIntent();
-		if (intent != null && intent.getData() != null) {
-			String deepLink = intent.getData().toString();
-			// Clear the intent data so we don't process it multiple times on resume
-			intent.setData(null);
-			setIntent(intent);
-			
-			try {
-				// Godot 4's user:// on Android = getFilesDir()/app_userdata/<project_name>/
-				java.io.File godotUserDir = new java.io.File(getFilesDir(), "app_userdata/Ashta Chamma");
-				if (!godotUserDir.exists()) {
-					godotUserDir.mkdirs();
-				}
-				java.io.File file = new java.io.File(godotUserDir, "deeplink.txt");
-				java.io.FileOutputStream fos = new java.io.FileOutputStream(file);
-				fos.write(deepLink.getBytes());
-				fos.close();
-				Log.v("GODOT", "Saved deep link to: " + file.getAbsolutePath());
-			} catch (Exception e) {
-				Log.e("GODOT", "Failed to write deeplink: " + e.getMessage());
-			}
-		}
-	}
-
-	@Override
-	public void onGodotMainLoopStarted() {
-		super.onGodotMainLoopStarted();
-		runOnUiThread(updateWindowAppearance);
-	}
-
-	@Override
-	public void onGodotForceQuit(Godot instance) {
-		if (!BuildConfig.FLAVOR.equals("instrumented")) {
-			// For instrumented builds, we disable force-quitting to allow the instrumented tests to complete
-			// successfully, otherwise they fail when the process crashes.
-			super.onGodotForceQuit(instance);
-		}
-	}
-
-	@Override
-	protected boolean isPiPEnabled() {
-		return true;
-	}
-}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ashta Chamma Login</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: #120820; 
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .box { 
+            background: #3d1e66; 
+            padding: 30px; 
+            border-radius: 15px; 
+            text-align: center; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); 
+            border: 2px solid #5a2d99;
+            width: 80%;
+            max-width: 400px;
+        }
+        h2 { 
+            margin-top: 0; 
+            color: #fef08a; 
+            font-size: 24px;
+        }
+        p {
+            font-size: 16px;
+            color: #d1c4e9;
+            margin-bottom: 30px;
+        }
+        .error-msg {
+            font-size: 14px;
+            color: #ef5350;
+            margin-bottom: 20px;
+            display: none;
+        }
+        a { 
+            display: inline-block;
+            background: #1db954; 
+            color: white; 
+            text-decoration: none;
+            padding: 15px 30px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 0 #148039; 
+            transition: transform 0.1s;
+        }
+        a:active { 
+            transform: translateY(4px); 
+            box-shadow: 0 0 0 #148039; 
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2 id="title">Auth Successful!</h2>
+        <p id="message">Google Sign-In is complete. Tap the button below to return to the game.</p>
+        <p class="error-msg" id="error-msg"></p>
+        <a id="return-btn" href="ashtachamma://login">Return to Game</a>
+    </div>
+    
+    <script>
+        var hash = window.location.hash;
+        var titleEl = document.getElementById('title');
+        var msgEl = document.getElementById('message');
+        var errorEl = document.getElementById('error-msg');
+        var btn = document.getElementById('return-btn');
+        var fullUrl = window.location.href;
+        
+        // Check if there's an error in the URL
+        if (fullUrl.indexOf('error=') !== -1 || fullUrl.indexOf('error_code=') !== -1) {
+            titleEl.textContent = 'Auth Failed';
+            titleEl.style.color = '#ef5350';
+            var match = fullUrl.match(/error_description=([^&#]+)/);
+            if (match) {
+                errorEl.textContent = decodeURIComponent(match[1].replace(/\+/g, ' '));
+                errorEl.style.display = 'block';
+            }
+            msgEl.textContent = 'Something went wrong. Tap below to return and try again.';
+            btn.href = "ashtachamma://login?error=auth_failed";
+        } else if (hash && hash.indexOf('access_token') !== -1) {
+            // SUCCESS! Tokens are in the hash fragment.
+            // Convert them to query params so Android can read them from intent.getData()
+            var tokenData = hash.substring(1); // remove leading #
+            btn.href = "ashtachamma://login?" + tokenData;
+        } else {
+            titleEl.textContent = 'Waiting...';
+            msgEl.textContent = 'No authentication data received. Tap below to return.';
+        }
+    </script>
+</body>
+</html>
